@@ -1,0 +1,30 @@
+name: 'Trigger (test)'
+
+on:
+  pull_request:
+    types: ['closed']
+    branches: ['release/**']
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'head ref to simulate (for manual testing)'
+        required: true
+        type: string
+
+permissions:
+  actions: 'write'
+  contents: 'read'
+
+jobs:
+  trigger:
+    if: "(github.event_name == 'pull_request' && github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'hotfix/')) || github.event_name == 'workflow_dispatch'"
+    runs-on: 'ubuntu-latest'
+    steps:
+      - uses: 'actions/checkout@v4'
+
+      - name: 'Parse branch name and dispatch publish (test)'
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+          HEAD_REF: "${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.event.inputs.ref }}"
+        run: |
+          node scripts/trigger-logic.js

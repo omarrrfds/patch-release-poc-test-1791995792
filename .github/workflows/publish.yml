@@ -1,0 +1,37 @@
+name: 'Publish (test)'
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_ref:
+        description: 'The ref to check out and "publish".'
+        required: true
+        type: 'string'
+      original_pr:
+        description: 'The PR number this claims to be for.'
+        required: false
+        type: 'string'
+
+jobs:
+  publish:
+    runs-on: 'ubuntu-latest'
+    # This is the gate under test: does a required reviewer on this
+    # environment actually block the step below until approved?
+    environment: 'prod'
+    steps:
+      - name: 'Checkout release_ref (mirrors "Checkout Release Code" in the real pipeline)'
+        uses: 'actions/checkout@v4'
+        with:
+          ref: '${{ inputs.release_ref }}'
+          path: 'release'
+
+      - name: 'FAKE publish step - SAFE, no real registry touched'
+        run: |
+          echo "### This run would have published the following content" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat release/marker.txt >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo "(no marker.txt found)" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "release_ref was: ${{ inputs.release_ref }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "claimed original_pr: ${{ inputs.original_pr }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "---- contents of release/marker.txt ----"
+          cat release/marker.txt 2>/dev/null || echo "(no marker.txt found)"
