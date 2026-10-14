@@ -1,0 +1,22 @@
+name: "Publish (no-gate test)"
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_ref:
+        description: "mirrors release-sandbox.yml: NO environment key on purpose"
+        required: true
+        type: "string"
+
+jobs:
+  publish-nogate:
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v4"
+        with:
+          ref: "${{ inputs.release_ref }}"
+          path: "release"
+      - name: "FAKE publish - SAFE no real registry"
+        run: |
+          echo "Published immediately - no approval gate"
+          cat release/marker.txt 2>/dev/null || true
